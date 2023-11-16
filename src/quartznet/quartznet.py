@@ -68,7 +68,7 @@ if __name__ == "__main__":
         cfg.train_ds.manifest_filepath = train_dataset.manifest_path
         cfg.train_ds.labels = list(set(get_charset(train_dataset.data).keys()))
         # cfg.train_ds.normalize_transcripts = False
-        cfg.train_ds.batch_size = 32
+        cfg.train_ds.batch_size = 8
         cfg.train_ds.num_workers = 0
         cfg.train_ds.pin_memory = True
         cfg.train_ds.trim_silence = True
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     use_cer = True #@param ["False", "True"] {type:"raw"}
     log_prediction = True #@param ["False", "True"] {type:"raw"}
     
-    EPOCHS = 100  # 100 epochs would provide better results, but would take an hour to train
+    EPOCHS = 10  # 100 epochs would provide better results, but would take an hour to train
 
     trainer = Trainer(
         devices=1,
