@@ -1,5 +1,5 @@
 notebooks/
-data/
+asr/data/
 *.nemo
 
 # Byte-compiled / optimized / DLL files

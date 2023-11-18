@@ -1,0 +1,7 @@
+_target_: src.data.vivos_datamodule.VivosDataModule
+data_dir: data/vivos
+batch_size: 32
+num_workers: 8
+pin_memory: True
+trim_silence: True
+normalize_transcripts: False
