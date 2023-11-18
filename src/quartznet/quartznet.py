@@ -3,12 +3,19 @@ import copy
 from omegaconf import open_dict
 import torch.nn as nn
 from pytorch_lightning import Trainer
-from pytorch_lightning.loggers import WandbLogger
-import wandb
+# from pytorch_lightning.loggers import WandbLogger
+# import wandb
 import nemo.collections.asr as nemo_asr
 
 from src.data.components.vivos import *
+import logging
 
+logging.basicConfig(filename="./logs/quartznet.log",
+                    filemode='a',
+                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                    datefmt='%H:%M:%S',
+                    level=logging.INFO)
+_logger = logging.getLogger(__name__)
 
 class QuartzNet():
     def __init__(self, charset_path: str, model_name: str, freeze_encoder:bool = False) -> None:
@@ -52,6 +59,7 @@ class QuartzNet():
                 param.requires_grad_(True)
 
 if __name__ == "__main__":
+    _logger.info("Start ............")
     quartznet = QuartzNet(charset_path = "data/vivos/charset.json", model_name = "stt_en_quartznet15x5").char_model
     cfg = copy.deepcopy(quartznet.cfg)
 
@@ -98,7 +106,7 @@ if __name__ == "__main__":
     use_cer = True #@param ["False", "True"] {type:"raw"}
     log_prediction = True #@param ["False", "True"] {type:"raw"}
     
-    EPOCHS = 10  # 100 epochs would provide better results, but would take an hour to train
+    EPOCHS = 100  # 100 epochs would provide better results, but would take an hour to train
 
     trainer = Trainer(
         devices=1,
@@ -108,7 +116,7 @@ if __name__ == "__main__":
         enable_checkpointing=False,
         logger=False,
         log_every_n_steps=1,
-        check_val_every_n_epoch=5
+        check_val_every_n_epoch=10
     )
 
     # Setup model with the trainer
@@ -116,5 +124,6 @@ if __name__ == "__main__":
     quartznet.cfg = quartznet._cfg
 
     trainer.fit(quartznet)
-    quartznet.save_to('quartznet.nemo')
+    quartznet.save_to('quartznet_1.nemo')
     # wandb.finish()
+    _logger.info("End..............")
