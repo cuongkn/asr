@@ -28,3 +28,5 @@ librosa
 soundfile
 sox
 nemo_toolkit[all] #egg=nemo_toolkit[all]
+wget
+ruamel.yaml

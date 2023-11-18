@@ -1,6 +1,7 @@
 notebooks/
 asr/data/
 *.nemo
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

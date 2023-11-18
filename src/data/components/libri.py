@@ -27,10 +27,12 @@ class LibriDataset():
 
         # Building Manifests
         print('Bulding Manifests for dataset...')
+
+        self.manifest_path = self.data_dir + '/LibriSpeech/' + self.option + '-manifest.json'
+        
         for transcript_dir in tqdm(transcript_path_lst):
             transcripts_path = os.path.join(self.data_dir, transcript_dir)
-            manifest_path = self.data_dir + '/LibriSpeech/' + self.option + '-manifest.json'
-            self.build_manifest(transcripts_path, manifest_path, self.path)
+            self.build_manifest(transcripts_path, self.manifest_path, self.path)
         print("***Done***")
 
     def prepare_data(self):
