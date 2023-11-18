@@ -18,7 +18,7 @@ logging.basicConfig(filename="./logs/quartznet.log",
 _logger = logging.getLogger(__name__)
 
 class QuartzNet():
-    def __init__(self, charset_path: str, model_name: str, freeze_encoder:bool = False) -> None:
+    def __init__(self, charset_path: str, model_name: str, task:str, freeze_encoder:bool = False) -> None:
         super().__init__()
         self.model_name = model_name
 
@@ -67,15 +67,10 @@ if __name__ == "__main__":
     test_dataset = VivosDataset(type="test")
 
     quartznet.change_vocabulary(new_vocabulary=list(set(get_charset(train_dataset.data).keys())))
-    # quartznet.cfg.labels = list(set(get_charset(train_dataset.data).keys()))
-
-    # wandb_logger = WandbLogger(project="asr")
-
 
     with open_dict(cfg):
         cfg.train_ds.manifest_filepath = train_dataset.manifest_path
         cfg.train_ds.labels = list(set(get_charset(train_dataset.data).keys()))
-        # cfg.train_ds.normalize_transcripts = False
         cfg.train_ds.batch_size = 8
         cfg.train_ds.num_workers = 0
         cfg.train_ds.pin_memory = True
@@ -83,7 +78,6 @@ if __name__ == "__main__":
 
         cfg.validation_ds.manifest_filepath = test_dataset.manifest_path
         cfg.validation_ds.labels = list(set(get_charset(test_dataset.data).keys()))
-        # cfg.validation_ds.normalize_transcripts = False
         cfg.validation_ds.batch_size = 8
         cfg.validation_ds.num_workers = 0
         cfg.validation_ds.pin_memory = True
@@ -124,6 +118,6 @@ if __name__ == "__main__":
     quartznet.cfg = quartznet._cfg
 
     trainer.fit(quartznet)
-    quartznet.save_to('quartznet_1.nemo')
+    quartznet.save_to('quartznet.nemo')
     # wandb.finish()
     _logger.info("End..............")
