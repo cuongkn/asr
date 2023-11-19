@@ -1,7 +1,7 @@
 notebooks/
 asr/data/
 wandb/
-# asr/
+asr/
 *.nemo
 *.tmp
 .DS_Store
