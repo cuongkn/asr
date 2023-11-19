@@ -4,12 +4,13 @@ import copy
 from omegaconf import open_dict, DictConfig
 import torch.nn as nn
 from pytorch_lightning import Trainer
-# from pytorch_lightning.loggers import WandbLogger
-# import wandb
+from pytorch_lightning.loggers import WandbLogger
 import nemo.collections.asr as nemo_asr
+import wandb
 from src.data.components.libri import LibriDataset
 
 from src.data.components.vivos import *
+from src.quartznet.sweep import *
 import logging
 
 logging.basicConfig(filename="./logs/quartznet.log",
@@ -63,9 +64,9 @@ class QuartzNet():
 if __name__ == "__main__":
     _logger.info("Start ............")
     parser = argparse.ArgumentParser()
-    parser.add_argument('--task', required=True, type=str, help="'vivos' or 'libri'")
+    parser.add_argument('--task', required=True, type=str, help="'vivos' or 'libri' or 'librisweep")
     args = parser.parse_args()
-
+    
     if args.task == "vivos":
         model = QuartzNet(charset_path = "data/vivos/charset.json", model_name = "stt_en_quartznet15x5")
         quartznet = model.char_model
@@ -129,27 +130,45 @@ if __name__ == "__main__":
         trainer.fit(quartznet)
         quartznet.save_to('quartznet.nemo')
         # wandb.finish()
+    elif args.task == "librisweep":
+        sweep_id = wandb.sweep(sweep_config, project="asr")
+        wandb.agent(sweep_id, function=sweep_iteration)
     elif args.task == "libri":
         dev_clean = LibriDataset(option="dev-clean")
         dev_other = LibriDataset(option="dev-other")
         test_clean = LibriDataset(option="test-clean")
         test_other = LibriDataset(option="test-other")
-
-        quartznet = nemo_asr.models.EncDecCTCModel.from_pretrained(model_name="QuartzNet15x5Base-En")
-        # --- Config Information ---#
-        try:
-            from ruamel.yaml import YAML
-        except ModuleNotFoundError:
-            from ruamel_yaml import YAML
+        # load config
         config_path = './src/quartznet/config.yaml'
-
         yaml = YAML(typ='safe')
         with open(config_path) as f:
-            params = yaml.load(f)
-        trainer = Trainer(devices=1, accelerator='gpu', max_epochs=100)   
-                
+            params = yaml.load(f)    
+            
+        # set up W&B logger
+        wandb_logger = WandbLogger(project="asr", log_model='all')  # log final model
+
+        for k,v in params.items(): 
+            wandb_logger.experiment.config[k]=v 
+
+        # setup data
         params['model']['train_ds']['manifest_filepath'] = dev_clean.manifest_path
         params['model']['validation_ds']['manifest_filepath'] = test_clean.manifest_path
-        first_asr_model = nemo_asr.models.EncDecCTCModel(cfg=DictConfig(params['model']), trainer=trainer)
-        trainer.fit(first_asr_model)
+
+        trainer = Trainer(
+        devices=1, 
+        accelerator='gpu', 
+        enable_checkpointing=True, 
+        check_val_every_n_epoch=5, 
+        max_epochs=100, 
+        accumulate_grad_batches=1,
+        log_every_n_steps=1,
+        logger=wandb_logger)
+    
+        # setup model - note how we refer to sweep parameters with wandb.config
+        model = nemo_asr.models.EncDecCTCModel(cfg=DictConfig(params['model']), trainer=trainer)
+
+        # train
+        trainer.fit(model)
+
+    wandb.finish()
     _logger.info("End..............")

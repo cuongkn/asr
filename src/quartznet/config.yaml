@@ -11,16 +11,16 @@ model:
     manifest_filepath: ???
     sample_rate: 16000
     labels: *labels
-    batch_size: 32
+    batch_size: 8
     trim_silence: True
     max_duration: 16.7
     shuffle: True
-    num_workers: 8
-    pin_memory: true
+    num_workers: 0
+    pin_memory: false
     # tarred datasets
     is_tarred: false
     tarred_audio_filepaths: null
-    shuffle_n: 2048
+    # shuffle_n: 2048
     # bucketing params
     bucketing_strategy: "synced_randomized"
     bucketing_batch_size: null
@@ -29,10 +29,10 @@ model:
     manifest_filepath: ???
     sample_rate: 16000
     labels: *labels
-    batch_size: 32
+    batch_size: 8
     shuffle: False
-    num_workers: 8
-    pin_memory: true
+    num_workers: 0
+    pin_memory: false
 
   preprocessor:
     _target_: nemo.collections.asr.modules.AudioToMelSpectrogramPreprocessor

@@ -29,15 +29,16 @@ class LibriDataset():
         print('Bulding Manifests for dataset...')
 
         self.manifest_path = self.data_dir + '/LibriSpeech/' + self.option + '-manifest.json'
-        
-        for transcript_dir in tqdm(transcript_path_lst):
-            transcripts_path = os.path.join(self.data_dir, transcript_dir)
-            self.build_manifest(transcripts_path, self.manifest_path, self.path)
+
+        if not os.path.isfile(self.manifest_path):
+            for transcript_dir in tqdm(transcript_path_lst):
+                transcripts_path = os.path.join(self.data_dir, transcript_dir)
+                self.build_manifest(transcripts_path, self.manifest_path, self.path)
         print("***Done***")
 
     def prepare_data(self):
         mirror = self.option + ".tar.gz"
-        if not os.path.exists(self.data_dir + mirror.replace("-", "_")):
+        if not os.path.exists(self.data_dir + mirror):
             print(f"Downloading {self.option} dataset...")
             libri_url = "https://www.openslr.org/resources/12/" + mirror
             libri_path = wget.download(libri_url, self.data_dir)
@@ -88,3 +89,4 @@ if __name__ == "__main__":
     dev_other = LibriDataset(option="dev-other")
     test_clean = LibriDataset(option="test-clean")
     test_other = LibriDataset(option="test-other")
+    train_clean = LibriDataset(option="train-clean-100")

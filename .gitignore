@@ -1,6 +1,9 @@
 notebooks/
 asr/data/
+wandb/
+asr/
 *.nemo
+*.tmp
 .DS_Store
 
 # Byte-compiled / optimized / DLL files
