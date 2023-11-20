@@ -18,8 +18,6 @@ class QuartzNetLitModule(nemo_asr.models.ASRModel.from_pretrained("stt_en_quartz
         else:
             self.encoder.unfreeze()
 
-        self.
-
     def get_charset(self, charset_path):
         try:
             with open(charset_path, 'r', encoding='utf-8') as json_file:
