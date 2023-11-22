@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.nn.init as init
 from torch import Tensor
@@ -8,7 +9,10 @@ class ResidualConnectionModule(nn.Module):
     Residual Connection Module.
     outputs = (module(inputs) x module_factor + inputs x input_factor)
     """
-    def __init__(self, module: nn.Module, module_factor: float = 1.0, input_factor: float = 1.0):
+
+    def __init__(
+        self, module: nn.Module, module_factor: float = 1.0, input_factor: float = 1.0
+    ):
         super(ResidualConnectionModule, self).__init__()
         self.module = module
         self.module_factor = module_factor
@@ -23,6 +27,7 @@ class Linear(nn.Module):
     Wrapper class of torch.nn.Linear
     Weight initialize by xavier initialization and bias initialize to zeros.
     """
+
     def __init__(self, in_features: int, out_features: int, bias: bool = True) -> None:
         super(Linear, self).__init__()
         self.linear = nn.Linear(in_features, out_features, bias=bias)
@@ -35,7 +40,8 @@ class Linear(nn.Module):
 
 
 class View(nn.Module):
-    """ Wrapper class of torch.view() for Sequential module. """
+    """Wrapper class of torch.view() for Sequential module."""
+
     def __init__(self, shape: tuple, contiguous: bool = False):
         super(View, self).__init__()
         self.shape = shape
@@ -49,7 +55,8 @@ class View(nn.Module):
 
 
 class Transpose(nn.Module):
-    """ Wrapper class of torch.transpose() for Sequential module. """
+    """Wrapper class of torch.transpose() for Sequential module."""
+
     def __init__(self, shape: tuple):
         super(Transpose, self).__init__()
         self.shape = shape

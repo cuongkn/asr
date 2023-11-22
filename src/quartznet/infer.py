@@ -21,11 +21,11 @@ def convert_manifest_to_df(manifest_path):
                           'text': text})
 
 if __name__ == "__main__":
-    quartznet = nemo_asr.models.EncDecCTCModel.restore_from('quartznet_1.nemo')
+    quartznet = nemo_asr.models.EncDecCTCModel.restore_from('src/quartznet/model/quartznet_100.nemo')
     device = 'cuda' if torch.cuda.is_available else 'cpu'
     quartznet.to(device)
 
-    df = convert_manifest_to_df('data/vivos/vivos/test_manifest.json')
+    df = convert_manifest_to_df('data/vivos/vivos_quarztnet/test_manifest.json')
     audio_path = df['audio_filepath'].tolist()
     reference = df['text'].tolist()
 

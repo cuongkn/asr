@@ -1,1 +1,30 @@
 _target_: src.models.conformer_module.ConformerModule
+encoder: 
+  _target_: src.models.conformer.conformer.Conformer
+  input_dim: 80 
+  encoder_dim: 16
+  num_encoder_layers: 1
+  num_attention_heads: 2
+  freq_masks: 2
+  time_masks: 2
+  freq_width: 27
+  time_width: 0.05
+ctc_loss:
+  _target_: src.models.losses.ctc.CTCLoss
+  blank: 0
+  zero_infinity: true
+log_idx: 100
+optimizer:
+  _target_: torch.optim.AdamW
+  _partial_: true
+  lr: 0.001
+  betas: [0.9, 0.98]
+  eps: 1e-08
+  weight_decay: 0.01
+scheduler:
+  _target_: torch.optim.lr_scheduler.OneCycleLR
+  _partial_: true
+  max_lr: 0.001
+  epochs: 10
+  steps_per_epoch: 100
+  verbose: True

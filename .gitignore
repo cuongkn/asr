@@ -1,10 +1,10 @@
 notebooks/
-asr/data/
+data/
 wandb/
-asr/
 *.nemo
 *.tmp
 .DS_Store
+outputs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,0 +1,81 @@
+hydra:
+  run:
+    dir: outputs
+
+general:
+  batch_size: 16
+  n_fft: 159
+  lr: 0.001
+  log_idx: 100
+  epochs: 10
+
+text:
+  hyper:
+    char:
+      lang: vi
+    bpe:
+      vocab_size: 1000
+      pct_bpe: 1
+
+datasets:
+  vivos:
+    root: /kaggle/input/vivos-vietnamese-speech-corpus-for-asr/vivos
+    n_fft: 159
+
+datamodule:
+  vivos:
+    batch_size: 16
+    num_workers: 4
+
+model:
+  encoder:
+    conformer:
+      input_dim: 80 
+      encoder_dim: 512
+      num_encoder_layers: 17
+      num_attention_heads: 8
+      freq_masks: 2
+      time_masks: 10
+      freq_width: 27
+      time_width: 0.05
+    ctc:
+      log_idx: ${general.log_idx}
+  loss:
+    ctc:
+      blank: 0
+      zero_infinity: True
+  optim:
+    adamw:
+      lr: ${general.lr}
+      betas: [0.9, 0.98]
+      eps: 1e-08
+      weight_decay: 0.01
+  lr_scheduler:
+    one_cycle_lr:
+      max_lr: ${general.lr}
+      epochs: ${general.epochs}
+      steps_per_epoch: -1
+      verbose: True
+
+trainer:
+  tb_logger:
+    save_dir: tb_logs
+    name: model_logs
+  lr_monitor:
+    logging_interval: step
+  hyper:
+    max_epochs: ${general.epochs}
+    accelerator: auto
+    accumulate_grad_batches: 8
+
+session:
+  train: False
+  validate: True
+  test: False
+  predict:
+    is_pred: True
+    audio_path: None
+
+ckpt:
+  have_ckpt: False
+  ckpt_path: ckpts/conformer_ctc.ckpt

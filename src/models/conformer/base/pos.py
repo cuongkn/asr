@@ -14,12 +14,12 @@ class PositionalEncoding(nn.Module):
         PE_(pos, 2i+1)  =  cos(pos / power(10000, 2i / d_model))
     """
 
-    def __init__(self, d_model: int = 512, max_len: int = 10000) -> None:
+    def __init__(self, d_model: int = 512, max_len: int = 20000) -> None:
         super(PositionalEncoding, self).__init__()
         pe = torch.zeros(max_len, d_model, requires_grad=False)
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
         div_term = torch.exp(
-            torch.arange(0, d_model, 2).float() * -(math.log(10000.0) / d_model)
+            torch.arange(0, d_model, 2).float() * -(math.log(10000) / d_model)
         )
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
@@ -28,3 +28,21 @@ class PositionalEncoding(nn.Module):
 
     def forward(self, length: int) -> Tensor:
         return self.pe[:, :length]
+
+
+class TransformerPositionalEncoding(nn.Module):
+    def __init__(self, d_model: int = 512, max_len: int = 20000) -> None:
+        super().__init__()
+        self.encoding = PositionalEncoding(d_model, max_len)
+
+    def forward(self, x: Tensor) -> Tensor:
+        """
+        x: 3d (batch, seq len, hidden)
+        or 2d (seq len, hidden)
+        """
+        if len(x.size()) == 3:
+            length = x.size(1)
+        elif len(x.size()) == 2:
+            length = x.size(0)
+
+        return x + self.encoding(length)

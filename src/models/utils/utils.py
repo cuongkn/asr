@@ -2,6 +2,7 @@ import torch
 from typing import List
 from abc import ABC
 
+
 class TextProcess(ABC):
     aux_vocab = ["<p>", "<s>", "<e>", " ", ":", "'"] + list(map(str, range(10)))
 
@@ -56,4 +57,9 @@ class TextProcess(ABC):
                 break
             text += self.list_vocab[i]
         return text
-        
+
+
+if __name__ == "__main__":
+    text = TextProcess(lang="vi")
+    print(text.vocab)
+    print(text.list_vocab)

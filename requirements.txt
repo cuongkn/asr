@@ -1,7 +1,7 @@
 # --------- pytorch --------- #
 # torch>=2.0.0
 # torchvision>=0.15.0
-lightning>=2.0.0
+lightning==2.1.2
 torchmetrics>=0.11.4
 
 # --------- hydra --------- #
@@ -30,3 +30,4 @@ sox
 nemo_toolkit[all] #egg=nemo_toolkit[all]
 wget
 ruamel.yaml
+pyaudio

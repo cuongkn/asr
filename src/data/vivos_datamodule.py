@@ -7,57 +7,63 @@ from src.data.components.vivos_dataset import VivosDataset
 from src.models.utils.utils import TextProcess
 
 class VivosDataModule(LightningDataModule):
-    def __init__(self, data_dir: str, batch_size: int, num_workers: int, pin_memory: bool, text_process: TextProcess):
+    def __init__(self, root: str, batch_size: int, num_workers: int, pin_memory: bool):
         super().__init__()
         self.save_hyperparameters(logger=False)
 
-        self.data_train = Optional[Dataset] = None
-        self.data_val = Optional[Dataset] = None
-        self.data_test = Optional[Dataset] = None
+        self.data_train: Optional[Dataset] = None
+        self.data_val: Optional[Dataset] = None
+        self.data_test: Optional[Dataset] = None
+    
+        self.text_process = TextProcess(lang="vi")
 
-    def setup(self, stage: Optional[str]):
+    def setup(self, stage: Optional[str] = None):
         if not self.data_train and not self.data_val and not self.data_test:
-            self.data_train = VivosDataset(root=self.hparams.data_dir, subset="train")
-            self.data_test = VivosDataset(root=self.hparams.data_dir, subset="test")
+            data_train = VivosDataset(root=self.hparams.root, subset="train")
+            data_test = VivosDataset(root=self.hparams.root, subset="test")
 
-            train_length = self.data_train. __len__
-            test_length = self.data_test.__len__
+            train_length = len(data_train)
+            test_length = len(data_test)
 
-            self.data_train, self.data_val = random_split(dataset=self.data_train, lengths=[train_length-test_length, test_length], generator=torch.Generator().manual_seed(42))
+            self.data_train, self.data_val = random_split(dataset=data_train, lengths=[train_length-test_length, test_length], generator=torch.Generator().manual_seed(42))
+            self.data_test = data_test
 
     def train_dataloader(self):
         return DataLoader(
             dataset=self.data_train,
-            batch_sampler=self.hparams.batch_size,
+            batch_size=self.hparams.batch_size,
             num_workers=self.hparams.num_workers,
             pin_memory=self.hparams.pin_memory,
             collate_fn=self._collate_fn,
-            shuffle=True
+            shuffle=True,
+            # persistent_workers=True
         )
     
     def val_dataloader(self):
         return DataLoader(
             dataset=self.data_val,
-            batch_sampler=self.hparams.batch_size,
+            batch_size=self.hparams.batch_size,
             num_workers=self.hparams.num_workers,
             pin_memory=self.hparams.pin_memory,
             collate_fn=self._collate_fn,
-            shuffle=True
+            shuffle=False,
+            # persistent_workers=True
         )
     
     def test_dataloader(self):
         return DataLoader(
             dataset=self.data_test,
-            batch_sampler=self.hparams.batch_size,
+            batch_size=self.hparams.batch_size,
             num_workers=self.hparams.num_workers,
             pin_memory=self.hparams.pin_memory,
             collate_fn=self._collate_fn,
-            shuffle=True
+            shuffle=False,
+            # persistent_workers=True
         )
     
     def tokenize(self, s):
         s = s.lower()
-        s = self.hparams.text_process.tokenize(s)
+        s = self.text_process.tokenize(s)
         return s
 
     def _collate_fn(self, batch):
@@ -74,15 +80,15 @@ class VivosDataModule(LightningDataModule):
         # batch, time, feature
         specs = torch.nn.utils.rnn.pad_sequence(specs, batch_first=True)
 
-        trans = [self.hparams.text_process.text2int(self.tokenize(s)) for s in trans]
+        trans = [self.text_process.text2int(self.tokenize(s)) for s in trans]
         target_lengths = torch.IntTensor([s.size(0) for s in trans])
         trans = torch.nn.utils.rnn.pad_sequence(trans, batch_first=True).to(
             dtype=torch.int
         )
 
         # concat sos and eos to transcript
-        sos_id = torch.IntTensor([[self.hparams.text_process.sos_id]]).repeat(bs, 1)
-        eos_id = torch.IntTensor([[self.hparams.text_process.eos_id]]).repeat(bs, 1)
+        sos_id = torch.IntTensor([[self.text_process.sos_id]]).repeat(bs, 1)
+        eos_id = torch.IntTensor([[self.text_process.eos_id]]).repeat(bs, 1)
         trans = torch.cat((sos_id, trans, eos_id), dim=1).to(dtype=torch.int)
 
         return specs, input_lengths, trans, target_lengths
@@ -95,7 +101,6 @@ if __name__ == "__main__":
     path = rootutils.find_root(search_from=__file__, indicator=".project-root")
     config_path = str(path / "configs" / "data")
     print("root", path, config_path)
-    # rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
     @hydra.main(version_base="1.3", config_path=config_path, config_name="vivos.yaml")
     def main(cfg: DictConfig):
@@ -107,11 +112,15 @@ if __name__ == "__main__":
         val_loader = datamodule.val_dataloader()
         test_loader = datamodule.test_dataloader()
 
-        print("number of batches: ", len(train_loader))
+        print("number of batches: ", len(val_loader))
 
-        batch = next(iter(train_loader))
+        batch = next(iter(val_loader))
 
-        print(batch)
+        print(batch[0])
+        print(batch[1])
+        print(batch[2])
+        print(batch[3])
+
 
         # print(f'type of batch: {type(batch)}') # list
         # print(f'len of batch: {len(batch)}') # 2 

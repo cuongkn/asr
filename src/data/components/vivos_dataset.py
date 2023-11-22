@@ -1,11 +1,15 @@
+import glob
+import subprocess
+import tarfile
 import torchaudio
 from torch.utils.data import Dataset
 from pathlib import Path
 import os
+import wget
 
 
 class VivosDataset(Dataset):
-    def __init__(self,subset: str, root: str, n_fft: int = 200):
+    def __init__(self, subset: str, root: str, n_fft: int = 159):
         super().__init__()
         self.root = root
         self.subset = subset
@@ -42,3 +46,9 @@ class VivosDataset(Dataset):
         trans = self.transcripts[filename].lower()
 
         return specs, trans
+    
+if __name__ == "__main__":
+    dataset = VivosDataset(subset='train', root="data/vivos/vivos")
+    an_item = dataset[0]
+    print(f'type of each item: {type(an_item)}')
+    print(an_item)

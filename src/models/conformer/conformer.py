@@ -45,7 +45,7 @@ class Conformer(nn.Module):
         conv_kernel_size: int = 31,
         half_step_residual: bool = True,
         freq_masks: int = 2,
-        time_masks: int = 10,
+        time_masks: int = 2,
         freq_width: int = 27,
         time_width: int = 0.05,
     ) -> None:

@@ -1,7 +1,5 @@
 _target_: src.data.vivos_datamodule.VivosDataModule
-data_dir: data/vivos/vivos
-batch_size: 16
-num_workers: 4
+root: data/vivos/vivos
+batch_size: 4
+num_workers: 2
 pin_memory: True
-text_process:
-  _target_: src.models.utils.utils.TextProcess
