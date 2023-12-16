@@ -112,6 +112,28 @@ def get_charset(manifest_data):
             charset[character] += 1
     return charset
 
+def concatenate_files(file1_path, file2_path, file3_path):
+    try:
+        # Read the contents of file1
+        with open(file1_path, 'r', encoding='utf8') as file1:
+            content1 = file1.read()
+
+        # Read the contents of file2
+        with open(file2_path, 'r', encoding='utf8') as file2:
+            content2 = file2.read()
+
+        # Concatenate the contents of file1 and file2
+        concatenated_content = content1 + content2
+
+        # Write the concatenated content to file3
+        with open(file3_path, 'w', encoding='utf8') as file3:
+            file3.write(concatenated_content)
+
+        print(f"Contents of {file1_path} and {file2_path} have been concatenated and saved to {file3_path}")
+
+    except FileNotFoundError:
+        print("One or more files not found.")
+
 if __name__ == "__main__":
     train_dataset = VivosDataset(type="train")
     test_dataset = VivosDataset(type="test")
@@ -136,3 +158,6 @@ if __name__ == "__main__":
         json.dump(concatenated_list, json_file, ensure_ascii=False)
 
     print(f'The concatenated set has been written to {json_file_path}.')
+
+    concatenate_files(train_dataset.manifest_path, test_dataset.manifest_path, 'data/vivos/vivos/combined.json')
+    

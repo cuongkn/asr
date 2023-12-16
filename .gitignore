@@ -5,6 +5,7 @@ wandb/
 *.tmp
 .DS_Store
 outputs/
+lightning_logs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

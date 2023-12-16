@@ -21,15 +21,18 @@ def convert_manifest_to_df(manifest_path):
                           'text': text})
 
 if __name__ == "__main__":
-    quartznet = nemo_asr.models.EncDecCTCModel.restore_from('src/quartznet/model/quartznet_100.nemo')
     device = 'cuda' if torch.cuda.is_available else 'cpu'
-    quartznet.to(device)
+    # quartznet = nemo_asr.models.EncDecCTCModel.restore_from('src/quartznet/model/quartznet_freeze_100.nemo')
+    # quartznet.to(device)
 
-    df = convert_manifest_to_df('data/vivos/vivos_quarztnet/test_manifest.json')
+    citrinet = nemo_asr.models.ASRModel.restore_from('src\quartznet\model\citrinet_libri_bpe_freeze.nemo', strict=False)
+    citrinet.to(device)
+
+    df = convert_manifest_to_df('data\libri\LibriSpeech\test-clean-manifest.json')
     audio_path = df['audio_filepath'].tolist()
     reference = df['text'].tolist()
 
-    hypothesis = quartznet.transcribe(paths2audio_files=audio_path)
+    hypothesis = citrinet.transcribe(paths2audio_files=audio_path)
     print(wer(reference, hypothesis))
 
     out = process_words(reference, hypothesis)

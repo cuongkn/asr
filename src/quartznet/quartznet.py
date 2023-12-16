@@ -25,7 +25,7 @@ class QuartzNet():
         super().__init__()
         self.model_name = model_name
 
-        charset_list = self.get_charset(charset_path=charset_path)
+        self.charset_list = self.get_charset(charset_path=charset_path)
 
         char_model = nemo_asr.models.ASRModel.from_pretrained(model_name)
 
@@ -70,29 +70,30 @@ if __name__ == "__main__":
     if args.task == "vivos":
         model = QuartzNet(charset_path = "data/vivos/charset.json", model_name = "stt_en_quartznet15x5")
         quartznet = model.char_model
-
+        charset_list = model.charset_list
         cfg = copy.deepcopy(quartznet.cfg)
 
         train_dataset = VivosDataset(type="train")
         test_dataset = VivosDataset(type="test")
 
-        quartznet.change_vocabulary(new_vocabulary=list(set(get_charset(train_dataset.data).keys())))
+        # quartznet.change_vocabulary(new_vocabulary=list(set(get_charset(train_dataset.data).keys())))
+        quartznet.change_vocabulary(new_vocabulary=charset_list)
 
         with open_dict(cfg):
-            cfg.train_ds.manifest_filepath = train_dataset.manifest_path
-            cfg.train_ds.labels = list(set(get_charset(train_dataset.data).keys()))
+            # cfg.train_ds.manifest_filepath = train_dataset.manifest_path
+            cfg.train_ds.manifest_filepath = 'data/vivos/vivos/combined.json'
+            cfg.train_ds.labels = charset_list
             cfg.train_ds.batch_size = 8
             cfg.train_ds.num_workers = 0
-            cfg.train_ds.pin_memory = True
+            cfg.train_ds.pin_memory = False
             cfg.train_ds.trim_silence = True
 
             cfg.validation_ds.manifest_filepath = test_dataset.manifest_path
             cfg.validation_ds.labels = list(set(get_charset(test_dataset.data).keys()))
             cfg.validation_ds.batch_size = 8
             cfg.validation_ds.num_workers = 0
-            cfg.validation_ds.pin_memory = True
+            cfg.validation_ds.pin_memory = False
             cfg.validation_ds.trim_silence = True
-    
         quartznet.setup_training_data(cfg.train_ds)
         quartznet.setup_multiple_validation_data(cfg.validation_ds)
 
@@ -110,7 +111,7 @@ if __name__ == "__main__":
         use_cer = True #@param ["False", "True"] {type:"raw"}
         log_prediction = True #@param ["False", "True"] {type:"raw"}
         
-        EPOCHS = 100  # 100 epochs would provide better results, but would take an hour to train
+        EPOCHS = 150  # 100 epochs would provide better results, but would take an hour to train
 
         trainer = Trainer(
             devices=1,
@@ -118,8 +119,8 @@ if __name__ == "__main__":
             max_epochs=EPOCHS,
             accumulate_grad_batches=1,
             enable_checkpointing=False,
-            logger=False,
-            log_every_n_steps=1,
+            logger=None,
+            log_every_n_steps=100,
             check_val_every_n_epoch=10
         )
 
@@ -128,8 +129,7 @@ if __name__ == "__main__":
         quartznet.cfg = quartznet._cfg
 
         trainer.fit(quartznet)
-        quartznet.save_to('quartznet.nemo')
-        # wandb.finish()
+        quartznet.save_to('quartznet_vivos.nemo')
     elif args.task == "librisweep":
         sweep_id = wandb.sweep(sweep_config, project="asr")
         wandb.agent(sweep_id, function=sweep_iteration)
@@ -151,17 +151,20 @@ if __name__ == "__main__":
             wandb_logger.experiment.config[k]=v 
 
         # setup data
-        params['model']['train_ds']['manifest_filepath'] = dev_clean.manifest_path
-        params['model']['validation_ds']['manifest_filepath'] = test_clean.manifest_path
+        # params['model']['train_ds']['manifest_filepath'] = dev_clean.manifest_path
+        # params['model']['validation_ds']['manifest_filepath'] = test_clean.manifest_path
+            
+        params['model']['train_ds']['manifest_filepath'] = 'data\libri\LibriSpeech\libri_train.json'
+        params['model']['validation_ds']['manifest_filepath'] = 'data\libri\LibriSpeech\libri_test.json'
 
         trainer = Trainer(
         devices=1, 
         accelerator='gpu', 
         enable_checkpointing=True, 
         check_val_every_n_epoch=5, 
-        max_epochs=100, 
+        max_epochs=500, 
         accumulate_grad_batches=1,
-        log_every_n_steps=1,
+        log_every_n_steps=10,
         logger=wandb_logger)
     
         # setup model - note how we refer to sweep parameters with wandb.config

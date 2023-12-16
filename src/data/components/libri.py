@@ -84,9 +84,29 @@ class LibriDataset():
                     json.dump(metadata, fout)
                     fout.write('\n')
 
+def concatenate_files(file1_path, file2_path, file3_path):
+    try:
+        with open(file1_path, 'r', encoding='utf8') as file1:
+            content1 = file1.read()
+
+        with open(file2_path, 'r', encoding='utf8') as file2:
+            content2 = file2.read()
+
+        concatenated_content = content1 + content2
+
+        with open(file3_path, 'w', encoding='utf8') as file3:
+            file3.write(concatenated_content)
+
+        print(f"Contents of {file1_path} and {file2_path} have been concatenated and saved to {file3_path}")
+
+    except FileNotFoundError:
+        print("One or more files not found.")
+
 if __name__ == "__main__":
     dev_clean = LibriDataset(option="dev-clean")
     dev_other = LibriDataset(option="dev-other")
     test_clean = LibriDataset(option="test-clean")
     test_other = LibriDataset(option="test-other")
-    train_clean = LibriDataset(option="train-clean-100")
+    # train_clean = LibriDataset(option="train-clean-100")
+    concatenate_files(dev_clean.manifest_path, dev_other.manifest_path, 'data/libri/LibriSpeech/libri_train.json')
+    concatenate_files(test_clean.manifest_path, test_other.manifest_path, 'data/libri/LibriSpeech/libri_test.json')
