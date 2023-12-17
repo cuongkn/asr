@@ -10,7 +10,7 @@ import wandb
 from src.data.components.libri import LibriDataset
 
 from src.data.components.vivos import *
-from src.quartznet.sweep import *
+from src.nemo.sweep import *
 import logging
 
 logging.basicConfig(filename="./logs/quartznet.log",

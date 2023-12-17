@@ -22,7 +22,7 @@ import librosa
 class QuartznetInferencer():
     def __init__(self):
 
-        self.stt_config_path = "model/quartznet5x5.yaml"
+        self.stt_config_path = "src/quartznet/quartznet_vivos_100.yaml"
 
         yaml = YAML(typ='safe')
         with open(self.stt_config_path, encoding="utf-8") as f:
@@ -32,7 +32,7 @@ class QuartznetInferencer():
 
     def load_onnx_model(self):
 
-        model_to_load = "model/stt_model.onnx"
+        model_to_load = "src/quartznet/quartznet_vivos_100.onnx"
 
         # create preprocessor
         self.preprocessor = EncDecCTCModel.from_config_dict(DictConfig(self.params['model']).preprocessor)
